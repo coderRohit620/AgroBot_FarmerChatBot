@@ -8,6 +8,16 @@
   <title>{{ title|default("AI-AgroBot Pro") }}</title>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('agrobot_theme');
+      const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      const theme = savedTheme ? savedTheme : (prefersLight ? 'light' : 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) metaTheme.setAttribute('content', theme === 'light' ? '#f5f8f5' : '#060d14');
+    })();
+  </script>
 </head>
 <body>
 
@@ -46,6 +56,13 @@
           <button class="nav-btn primary" id="nav-register">🌱 <span>Register</span></button>
         </a>
       {% endif %}
+
+      <!-- Theme Switcher Button -->
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" title="Toggle theme">
+        <span class="theme-icon moon-icon" aria-hidden="true">🌙</span>
+        <span class="theme-icon sun-icon" aria-hidden="true">☀️</span>
+        <span class="sr-only">Toggle Dark/Light Mode</span>
+      </button>
     </nav>
 
     <!-- Mobile Hamburger -->
@@ -69,6 +86,11 @@
       <a href="{{ url_for('login') }}" style="animation-delay:0.10s">🔐 Login</a>
       <a href="{{ url_for('register') }}" class="primary-link" style="animation-delay:0.15s">🌱 Create Account</a>
     {% endif %}
+
+    <!-- Mobile Theme Switcher -->
+    <button class="mobile-theme-btn" id="mobileThemeToggle" type="button" aria-label="Toggle theme">
+      <span id="mobileThemeIcon">🌙</span> <span id="mobileThemeText">Switch Theme</span>
+    </button>
   </nav>
 
   <!-- ── Main Content ── -->
@@ -148,12 +170,58 @@
       }
     });
 
+    // ── Theme Switcher ───────────────────────────────────────
+    function initTheme() {
+      const themeToggle = document.getElementById('themeToggle');
+      const mobileThemeToggle = document.getElementById('mobileThemeToggle');
+      const mobileThemeIcon = document.getElementById('mobileThemeIcon');
+      const mobileThemeText = document.getElementById('mobileThemeText');
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+
+      function updateThemeUI(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('agrobot_theme', theme);
+        if (metaTheme) metaTheme.setAttribute('content', theme === 'light' ? '#f5f8f5' : '#060d14');
+        if (mobileThemeIcon && mobileThemeText) {
+          mobileThemeIcon.textContent = theme === 'light' ? '☀️' : '🌙';
+          mobileThemeText.textContent = theme === 'light' ? 'Light Theme (Click for Dark)' : 'Dark Theme (Click for Light)';
+        }
+        if (themeToggle) {
+          const tip = theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode';
+          themeToggle.setAttribute('title', tip);
+          themeToggle.setAttribute('aria-label', tip);
+        }
+      }
+
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      updateThemeUI(currentTheme);
+
+      function toggleTheme() {
+        const activeTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const nextTheme = activeTheme === 'light' ? 'dark' : 'light';
+        updateThemeUI(nextTheme);
+      }
+
+      if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+      if (mobileThemeToggle) mobileThemeToggle.addEventListener('click', toggleTheme);
+
+      // Listen for system color scheme change
+      if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+          if (!localStorage.getItem('agrobot_theme')) {
+            updateThemeUI(e.matches ? 'light' : 'dark');
+          }
+        });
+      }
+    }
+    initTheme();
+
     // ── Topbar scroll shadow ─────────────────────────────────
     const topbar = document.querySelector('.topbar');
     window.addEventListener('scroll', () => {
-      topbar.style.background = window.scrollY > 10
-        ? 'rgba(6, 13, 20, 0.96)'
-        : 'rgba(6, 13, 20, 0.88)';
+      if (topbar) {
+        topbar.classList.toggle('scrolled', window.scrollY > 10);
+      }
     }, { passive: true });
   </script>
 </body>
