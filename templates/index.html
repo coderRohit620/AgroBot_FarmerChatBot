@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" aria-label="Sidebar">
+
+    <!-- Profile Card -->
+    <div class="sidebar-card">
+      <h3>🌿 Profile</h3>
+      {% if current_user.is_authenticated %}
+        <div class="profile-avatar" title="{{ current_user.name or 'Farmer' }}">🧑‍🌾</div>
+        <div class="profile-name">{{ current_user.name or current_user.email.split('@')[0] }}</div>
+        <div class="profile-meta">
+          <div class="meta-row">
+            <span class="meta-icon">🌾</span>
+            <span class="meta-val">{{ current_user.primary_crop or 'Not set' }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-icon">📍</span>
+            <span class="meta-val">{{ current_user.region or 'Not set' }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-icon">🗣️</span>
+            <span class="meta-val">
+              {% if current_user.preferred_language == 'hi' %}Hindi
+              {% elif current_user.preferred_language == 'ta' %}Tamil
+              {% else %}English{% endif %}
+            </span>
+          </div>
+        </div>
+        <a href="{{ url_for('profile') }}" class="btn" style="width:100%; justify-content:center;">✏️ Edit Profile</a>
+      {% else %}
+        <div class="profile-avatar" style="margin:0 auto 14px;">🌱</div>
+        <p style="font-size:0.8rem;color:var(--text-muted);text-align:center;margin-bottom:16px;line-height:1.5;">
+          Login to save your profile and chat history
+        </p>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <a href="{{ url_for('login') }}" class="btn primary" style="justify-content:center;">🔐 Login</a>
+          <a href="{{ url_for('register') }}" class="btn" style="justify-content:center;">🌱 Register</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Quick Questions -->
+    <div class="sidebar-card">
+      <h3>💡 Quick Tips</h3>
+      <ul class="tips-list" id="quickTips" role="list">
+        <li onclick="insertTip(this)" role="listitem" tabindex="0" onkeydown="if(event.key==='Enter')insertTip(this)">Best soil for cotton farming?</li>
+        <li onclick="insertTip(this)" role="listitem" tabindex="0" onkeydown="if(event.key==='Enter')insertTip(this)">How to control aphids on wheat?</li>
+        <li onclick="insertTip(this)" role="listitem" tabindex="0" onkeydown="if(event.key==='Enter')insertTip(this)">When to irrigate rice crops?</li>
+        <li onclick="insertTip(this)" role="listitem" tabindex="0" onkeydown="if(event.key==='Enter')insertTip(this)">What fertilizer for tomatoes?</li>
+        <li onclick="insertTip(this)" role="listitem" tabindex="0" onkeydown="if(event.key==='Enter')insertTip(this)">Signs of nitrogen deficiency?</li>
+        <li onclick="insertTip(this)" role="listitem" tabindex="0" onkeydown="if(event.key==='Enter')insertTip(this)">How to prevent fungal disease?</li>
+      </ul>
+    </div>
+
+    <!-- Admin: Recent Users -->
+    {% if recent_users %}
+    <div class="sidebar-card">
+      <h3>👥 Recent Users</h3>
+      <ul class="user-list" role="list">
+        {% for u in recent_users %}
+          <li role="listitem">
+            <a href="{{ url_for('admin_view_user', user_id=u.id) }}">
+              👤 {{ u.name or u.email.split('@')[0] }}
+              <span style="display:block;font-size:0.68rem;color:var(--text-dim);margin-top:1px;">{{ u.email }}</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+  </aside>
+
+  <!-- ── Chat Panel ── -->
+  <section class="chat-panel" aria-label="Chat">
+    <div id="messages" class="messages" aria-live="polite" aria-label="Chat messages" role="log"></div>
+
+    <!-- Input Form -->
+    <form id="chatForm" class="chat-form" onsubmit="return false;" aria-label="Send a message">
+
+      <!-- Hidden image input -->
+      <input type="file" id="imageInput" accept="image/*" style="display:none;" aria-label="Upload crop image">
+
+      <!-- Image upload button -->
+      <label for="imageInput" class="chat-action-btn" title="Upload crop image for AI analysis" aria-label="Upload image" role="button">📷</label>
+
+      <!-- Voice button -->
+      <button id="voiceBtn" type="button" class="chat-action-btn" title="Voice input" aria-label="Voice input">🎤</button>
+
+      <!-- Text input -->
+      <input id="msg" type="text"
+             placeholder="Ask about crops, soil, pests…"
+             autocomplete="off"
+             aria-label="Type your agricultural question"
+             maxlength="1000">
+
+      <!-- Send button -->
+      <button id="sendBtn" type="button" title="Send message" aria-label="Send message">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+
+    </form>
+  </section>
+
+</div>
+
+<script>
+  function insertTip(el) {
+    const input = document.getElementById('msg');
+    if (input) {
+      input.value = el.textContent.trim();
+      input.focus();
+      // Animate the tip
+      el.style.color = 'var(--green-400)';
+      setTimeout(() => { el.style.color = ''; }, 600);
+    }
+  }
+</script>
+{% endblock %}

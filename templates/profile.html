@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Profile Banner -->
+<div class="profile-banner">
+  <div class="profile-big-avatar" title="Profile avatar">🧑‍🌾</div>
+  <div style="flex:1;min-width:0;">
+    <h2 style="font-size:1.55rem; margin-bottom:4px; font-family:'Outfit',sans-serif;">
+      {{ current_user.name or 'Farmer' }}
+    </h2>
+    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+      📧 {{ current_user.email }}
+    </p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+      <span class="badge {{ current_user.role }}">{{ current_user.role }}</span>
+      {% if current_user.primary_crop %}
+        <span class="badge farmer">🌾 {{ current_user.primary_crop }}</span>
+      {% endif %}
+      {% if current_user.region %}
+        <span class="badge farmer">📍 {{ current_user.region }}</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Edit Form -->
+<div class="auth-card" style="max-width:600px; margin-top:0;">
+  <div class="auth-header" style="text-align:left; margin-bottom:26px;">
+    <h2 style="font-size:1.45rem; -webkit-text-fill-color: initial; background: none; color: var(--text-primary);">
+      ✏️ Edit Profile
+    </h2>
+    <p class="auth-subtitle">Update your farming details for better AI recommendations</p>
+  </div>
+
+  <form method="post" id="profileForm">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="form-group">
+        <label for="p-name">👤 Full Name</label>
+        <input id="p-name" name="name"
+               value="{{ current_user.name or '' }}"
+               placeholder="Your name"
+               autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label for="p-crop">🌾 Primary Crop</label>
+        <input id="p-crop" name="primary_crop"
+               value="{{ current_user.primary_crop or '' }}"
+               placeholder="Rice, Wheat, Cotton…">
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="form-group">
+        <label for="p-region">📍 Region / State</label>
+        <input id="p-region" name="region"
+               value="{{ current_user.region or '' }}"
+               placeholder="Punjab, Maharashtra…">
+      </div>
+      <div class="form-group">
+        <label for="p-lang">🗣️ Preferred Language</label>
+        <select id="p-lang" name="preferred_language">
+          <option value="en" {% if current_user.preferred_language == 'en' %}selected{% endif %}>🇬🇧 English</option>
+          <option value="hi" {% if current_user.preferred_language == 'hi' %}selected{% endif %}>🇮🇳 Hindi</option>
+          <option value="ta" {% if current_user.preferred_language == 'ta' %}selected{% endif %}>🌴 Tamil</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="actions" style="margin-top:26px;">
+      <button class="btn primary" type="submit" id="saveBtn" style="padding:12px 36px;">
+        💾 Save Changes
+      </button>
+      <a href="{{ url_for('index') }}" class="btn">← Back to Chat</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Loading state on save
+  const profileForm = document.getElementById('profileForm');
+  const saveBtn     = document.getElementById('saveBtn');
+  if (profileForm && saveBtn) {
+    profileForm.addEventListener('submit', () => {
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '⏳ Saving…';
+    });
+  }
+</script>
+{% endblock %}

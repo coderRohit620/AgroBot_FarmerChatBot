@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-card" style="max-width:460px;">
+  <div class="auth-header">
+    <div class="auth-icon">🔐</div>
+    <h2>Welcome Back</h2>
+    <p class="auth-subtitle">Sign in to your AgroBot account</p>
+  </div>
+
+  <form method="post" id="loginForm" novalidate>
+    <div class="form-group">
+      <label for="email">
+        <span style="margin-right:4px;">📧</span> Email Address
+      </label>
+      <input id="email" name="email" type="email" required
+             placeholder="you@example.com"
+             autocomplete="email"
+             autocapitalize="none"
+             spellcheck="false">
+    </div>
+
+    <div class="form-group">
+      <label for="password">
+        <span style="margin-right:4px;">🔒</span> Password
+      </label>
+      <div style="position:relative;">
+        <input id="password" name="password" type="password" required
+               placeholder="••••••••"
+               autocomplete="current-password"
+               style="padding-right:48px;">
+        <button type="button" id="togglePwd"
+                style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1rem;padding:0;transition:color 0.15s;"
+                aria-label="Toggle password visibility"
+                title="Show / hide password">👁</button>
+      </div>
+    </div>
+
+    <div class="actions" style="margin-top:26px;">
+      <button type="submit" class="btn primary" id="loginBtn"
+              style="flex:1; justify-content:center; padding:13px; font-size:0.85rem;">
+        🌾 Sign In
+      </button>
+    </div>
+  </form>
+
+  <div class="auth-divider">or</div>
+
+  <p style="text-align:center;font-size:0.84rem;color:var(--text-muted);">
+    New here?
+    <a href="{{ url_for('register') }}"
+       style="color:var(--green-400);font-weight:700;margin-left:4px;">
+      Create an account →
+    </a>
+  </p>
+</div>
+
+<script>
+  // Toggle password visibility
+  const toggleBtn = document.getElementById('togglePwd');
+  const pwdInput  = document.getElementById('password');
+  if (toggleBtn && pwdInput) {
+    toggleBtn.addEventListener('click', () => {
+      const show = pwdInput.type === 'password';
+      pwdInput.type = show ? 'text' : 'password';
+      toggleBtn.textContent = show ? '🙈' : '👁';
+    });
+  }
+
+  // Loading state on submit
+  const loginForm = document.getElementById('loginForm');
+  const loginBtn  = document.getElementById('loginBtn');
+  if (loginForm && loginBtn) {
+    loginForm.addEventListener('submit', () => {
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = '<span style="opacity:0.7">Signing in…</span>';
+    });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="AI-AgroBot Pro — Your pocket agronomist. Get expert crop, soil and pest advice instantly.">
+  <meta name="theme-color" content="#060d14">
+  <title>{{ title|default("AI-AgroBot Pro") }}</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <!-- ── Top Navigation ── -->
+  <header class="topbar" role="banner">
+    <a href="{{ url_for('index') }}" class="brand" aria-label="AgroBot Home">
+      <img src="{{ url_for('static', filename='bot.png') }}" class="logo" alt="AgroBot Logo" width="42" height="42">
+      <div class="brand-text">
+        <h1>AI-AgroBot</h1>
+        <small>Pocket Agronomist</small>
+      </div>
+    </a>
+
+    <!-- Desktop Nav -->
+    <nav class="nav" aria-label="Main navigation">
+      <a href="{{ url_for('index') }}">
+        <button class="nav-btn" id="nav-chat">🌾 <span>Chat</span></button>
+      </a>
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('profile') }}">
+          <button class="nav-btn" id="nav-profile">👤 <span>Profile</span></button>
+        </a>
+        {% if current_user.role == 'admin' %}
+          <a href="{{ url_for('admin_dashboard') }}">
+            <button class="nav-btn" id="nav-admin">⚙️ <span>Admin</span></button>
+          </a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}">
+          <button class="nav-btn logout" id="nav-logout">↩ <span>Logout</span></button>
+        </a>
+      {% else %}
+        <a href="{{ url_for('login') }}">
+          <button class="nav-btn" id="nav-login">🔐 <span>Login</span></button>
+        </a>
+        <a href="{{ url_for('register') }}">
+          <button class="nav-btn primary" id="nav-register">🌱 <span>Register</span></button>
+        </a>
+      {% endif %}
+    </nav>
+
+    <!-- Mobile Hamburger -->
+    <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobileNav">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <!-- Mobile Navigation Drawer -->
+  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile navigation">
+    <a href="{{ url_for('index') }}" style="animation-delay:0.05s">🌾 Chat</a>
+    {% if current_user.is_authenticated %}
+      <a href="{{ url_for('profile') }}" style="animation-delay:0.10s">👤 Profile</a>
+      {% if current_user.role == 'admin' %}
+        <a href="{{ url_for('admin_dashboard') }}" style="animation-delay:0.15s">⚙️ Admin Dashboard</a>
+      {% endif %}
+      <a href="{{ url_for('logout') }}" class="danger-link" style="animation-delay:0.20s">↩ Logout</a>
+    {% else %}
+      <a href="{{ url_for('login') }}" style="animation-delay:0.10s">🔐 Login</a>
+      <a href="{{ url_for('register') }}" class="primary-link" style="animation-delay:0.15s">🌱 Create Account</a>
+    {% endif %}
+  </nav>
+
+  <!-- ── Main Content ── -->
+  <main class="main" role="main">
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% if msgs %}
+        <div class="flashes" role="alert" aria-live="polite">
+          {% for cat, msg in msgs %}
+            <div class="flash {{ cat }}">
+              {% if cat == 'success' %}✅{% elif cat == 'danger' %}❌{% elif cat == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+              {{ msg }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer class="footer" role="contentinfo">
+    © 2026 <span>AI-AgroBot Pro</span> &nbsp;·&nbsp; Built for Indian Farmers &nbsp;·&nbsp; 🌾
+  </footer>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script>
+    // ── Mobile Hamburger Menu ────────────────────────────────
+    const hamburger = document.getElementById('hamburgerBtn');
+    const mobileNav = document.getElementById('mobileNav');
+
+    if (hamburger && mobileNav) {
+      hamburger.addEventListener('click', () => {
+        const isOpen = hamburger.classList.toggle('open');
+        mobileNav.classList.toggle('open', isOpen);
+        hamburger.setAttribute('aria-expanded', isOpen);
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+      });
+
+      // Close on backdrop click
+      mobileNav.addEventListener('click', (e) => {
+        if (e.target === mobileNav) {
+          hamburger.classList.remove('open');
+          mobileNav.classList.remove('open');
+          hamburger.setAttribute('aria-expanded', 'false');
+          document.body.style.overflow = '';
+        }
+      });
+
+      // Close on link click
+      mobileNav.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          hamburger.classList.remove('open');
+          mobileNav.classList.remove('open');
+          hamburger.setAttribute('aria-expanded', 'false');
+          document.body.style.overflow = '';
+        });
+      });
+
+      // Close on escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && mobileNav.classList.contains('open')) {
+          hamburger.classList.remove('open');
+          mobileNav.classList.remove('open');
+          hamburger.setAttribute('aria-expanded', 'false');
+          document.body.style.overflow = '';
+        }
+      });
+    }
+
+    // ── Active nav link highlight ────────────────────────────
+    const path = window.location.pathname;
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      const href = btn.closest('a')?.getAttribute('href');
+      if (href && (path === href || (href !== '/' && path.startsWith(href)))) {
+        btn.classList.add('active');
+      }
+    });
+
+    // ── Topbar scroll shadow ─────────────────────────────────
+    const topbar = document.querySelector('.topbar');
+    window.addEventListener('scroll', () => {
+      topbar.style.background = window.scrollY > 10
+        ? 'rgba(6, 13, 20, 0.96)'
+        : 'rgba(6, 13, 20, 0.88)';
+    }, { passive: true });
+  </script>
+</body>
+</html>

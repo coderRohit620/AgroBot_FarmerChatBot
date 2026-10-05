@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Admin Header -->
+<div class="admin-header">
+  <div>
+    <h2 class="admin-title">⚙️ Admin Dashboard</h2>
+    <p style="color:var(--text-muted); font-size:0.84rem; margin-top:5px;">
+      Manage users, knowledge base and chat history
+    </p>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <span class="badge admin" style="font-size:0.75rem;padding:5px 14px;">Admin</span>
+    <span style="font-size:0.78rem;color:var(--text-dim);">{{ current_user.email }}</span>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="admin-stats">
+  <div class="stat-card">
+    <span class="stat-icon">👥</span>
+    <div class="stat-val">{{ users|length }}</div>
+    <div class="stat-label">Total Users</div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-icon">💬</span>
+    <div class="stat-val">{{ chats|length }}</div>
+    <div class="stat-label">Chat Messages</div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-icon">📚</span>
+    <div class="stat-val">KB</div>
+    <div class="stat-label">Knowledge Base</div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-icon">✅</span>
+    <div class="stat-val" style="font-size:1.3rem;padding-top:4px;">Live</div>
+    <div class="stat-label">System Status</div>
+  </div>
+</div>
+
+<!-- Grid: KB Editor + Users Table -->
+<div class="admin-grid">
+
+  <!-- Knowledge Base Editor -->
+  <div class="admin-section">
+    <h3>📚 Knowledge Base Editor</h3>
+    <form method="post" action="{{ url_for('admin_edit_kb') }}">
+      <textarea name="kb_data" class="kb-textarea" rows="12"
+                spellcheck="false"
+                placeholder="Enter knowledge base content (JSON or key: value pairs)…">{{ kb_content }}</textarea>
+      <div class="actions" style="margin-top:14px;">
+        <button class="btn primary" type="submit">💾 Save KB</button>
+      </div>
+    </form>
+
+    <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--border);">
+      <h3>📤 Import KB via CSV</h3>
+      <form method="post" action="{{ url_for('admin_upload_kb_csv') }}" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="csv-file">Select CSV File</label>
+          <input type="file" id="csv-file" name="csv_file" accept=".csv" required
+                 style="color:var(--text-muted); font-size:0.82rem; cursor:pointer;">
+        </div>
+        <p style="font-size:0.72rem; color:var(--text-dim); margin-bottom:12px; line-height:1.6;">
+          Required columns:
+          <code style="color:var(--green-400); background:rgba(74,222,128,0.08); padding:2px 6px; border-radius:4px;">keywords</code>
+          <code style="color:var(--green-400); background:rgba(74,222,128,0.08); padding:2px 6px; border-radius:4px;">answer_en</code>
+          <code style="color:var(--green-400); background:rgba(74,222,128,0.08); padding:2px 6px; border-radius:4px;">answer_hi</code>
+          <code style="color:var(--green-400); background:rgba(74,222,128,0.08); padding:2px 6px; border-radius:4px;">answer_ta</code>
+        </p>
+        <button class="btn" type="submit">📤 Upload CSV</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div class="admin-section">
+    <h3>👥 User Management</h3>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Email</th>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td style="color:var(--text-dim); font-weight:600; font-size:0.78rem;">#{{ u.id }}</td>
+            <td style="font-size:0.82rem;">{{ u.email }}</td>
+            <td style="color:var(--text-secondary);">{{ u.name or '—' }}</td>
+            <td><span class="badge {{ u.role }}">{{ u.role }}</span></td>
+            <td>
+              {% if u.role != 'admin' %}
+              <form method="post" action="{{ url_for('admin_delete_user', user_id=u.id) }}" style="display:inline;">
+                <button class="btn danger small" type="submit"
+                        onclick="return confirm('⚠️ Delete {{ u.email }}?\n\nThis action cannot be undone.')">
+                  🗑 Delete
+                </button>
+              </form>
+              {% else %}
+              <span style="color:var(--text-dim); font-size:0.72rem; font-style:italic;">Protected</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Chat History -->
+<div class="admin-section" style="margin-bottom:28px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
+    <h3 style="margin-bottom:0;">💬 Recent Conversations</h3>
+    <form method="post" action="{{ url_for('admin_clear_chats') }}"
+          onsubmit="return confirm('🧹 Delete ALL chat history?\n\nThis action cannot be undone.')">
+      <button class="btn danger small" type="submit">🧹 Clear All</button>
+    </form>
+  </div>
+
+  {% if chats %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Question</th>
+          <th>Bot Reply</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in chats %}
+        <tr>
+          <td style="color:var(--text-secondary); font-size:0.78rem; white-space:nowrap;">
+            {{ c.user_id or '👤 Guest' }}
+          </td>
+          <td class="truncate"
+              style="max-width:240px;"
+              title="{{ c.user_message }}">
+            {{ c.user_message }}
+          </td>
+          <td class="truncate"
+              style="max-width:300px; color:var(--text-muted);"
+              title="{{ c.bot_response }}">
+            {{ c.bot_response }}
+          </td>
+          <td style="color:var(--text-dim); font-size:0.73rem; white-space:nowrap;">
+            {{ c.created_at.strftime('%d %b %H:%M') if c.created_at else '—' }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center; padding:40px 20px; color:var(--text-dim); font-size:0.88rem;">
+    💬 No chat history yet
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
