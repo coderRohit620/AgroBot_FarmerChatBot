@@ -7,3 +7,5 @@ googletrans==4.0.0-rc1
 openai
 pillow
 itsdangerous
+gunicorn>=21.2.0
+psycopg2-binary>=2.9.9

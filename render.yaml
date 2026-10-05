@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: agrobot-farmer-chatbot
+    env: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: ADMIN_EMAIL
+        value: admin@agrobot.com
+      - key: ADMIN_PASSWORD
+        generateValue: true
